@@ -3,12 +3,31 @@ import smtplib  # 加载smtplib模块
 from email.mime.text import MIMEText
 from email.utils import formataddr
 from spider_qs import QiuBai
+import datetime
 """
     发邮件的方法, 支持发多个人, 支持html和纯文本格式
     author: Roger
 """
 
 mail_text = QiuBai().get_beautiful_html()
+
+def get_subject():
+    now_hour = int(datetime.datetime.now().strftime('%H'))
+    if 0 <= now_hour <3:
+        return '深夜, 晚安'
+    elif 3 <= now_hour < 7:
+        return '凌晨, 早安'
+    elif 7 <= now_hour < 11:
+        return '上午好, 今天又是元气满满的一天呢!'
+    elif 11 <= now_hour < 13:
+        return '中午好, 休息一下吧!'
+    elif 13 <= now_hour < 18:
+        return '下午, 准备下班!'
+    elif 18 <= now_hour < 23:
+        return '晚上好, 累了一天, 辛苦了!'
+    else:
+        return '深夜, 晚安'
+
 
 SMTP_IP = 'smtp.163.com'  # 邮箱服务器
 SMTP_PORT = 25  # 端口
@@ -31,7 +50,7 @@ MAIL_INFO = {
 }
 
 MAIL_INFO = {
-    'subject': '早上好!!',
+    'subject': get_subject(),
     'mail_text': mail_text,
     'mail_type': 'html',
 }
