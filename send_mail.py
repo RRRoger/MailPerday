@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import smtplib  # 加载smtplib模块
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 from spider_qs import QiuBai
 import datetime
@@ -55,23 +56,36 @@ MAIL_INFO = {
     'mail_type': 'html',
 }
 
+FILES = [
+]
 
 def get_smtp_server():
     return SMTP_IP, SMTP_PORT
 
 
-def mail(sender_info, receivers, mail_info):
+def mail(sender_info, receivers, mail_info, att_paths=None):
     smtp_ip, smtp_port = get_smtp_server()  # 获取连接信息
 
     subject = mail_info['subject']
     mail_text = mail_info['mail_text']
     mail_type = mail_info['mail_type']  # plain 纯文本; html, html,
 
-    msg = MIMEText(mail_text, mail_type, 'utf-8')
+    if att_paths:
+        msg = MIMEMultipart()
+        msg.attach(MIMEText(mail_text, mail_type, 'utf-8'))
+    else:
+        msg = MIMEText(mail_text, mail_type, 'utf-8')
 
     sender_nickname = sender_info['sender_nickname']
     sender = sender_info['sender']
     password = sender_info['password']
+
+    if att_paths:
+        for att_path in att_paths:
+            att = MIMEText(open(att_path, 'rb').read(), 'base64', 'utf-8')
+            att["Content-Type"] = 'application/octet-stream'
+            att["Content-Disposition"] = 'attachment; filename="%s"' % att_path.split('/')[-1]
+            msg.attach(att)
 
     # 括号里的对应发件人邮箱昵称、发件人邮箱账号
     msg['From'] = formataddr([sender_nickname, sender])
@@ -98,7 +112,7 @@ def mail(sender_info, receivers, mail_info):
 
 
 def send_mail():
-    res = mail(SENDER_INFO, RECEIVERS, MAIL_INFO)
+    res = mail(SENDER_INFO, RECEIVERS, MAIL_INFO, FILES)
     if res:
         print 'OK'
     else:
